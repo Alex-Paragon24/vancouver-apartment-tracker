@@ -5,9 +5,9 @@ import requests
 from datetime import datetime
 
 from scraper import get_listings, get_listing_details, is_target_neighborhood
-from sheets import append_to_sheet, get_seen_ids_from_sheet, update_row_status
+from sheets import append_to_sheet, get_seen_ids_from_sheet, update_row_status, store_draft_id, get_drafted_rows
 from telegram_bot import send_notification, send_error_notification
-from gmail_draft import create_draft
+from gmail_draft import create_draft, is_draft_sent
 from config import SEEN_LISTINGS_FILE, GOOGLE_MAPS_API_KEY, DESTINATION
 
 logging.basicConfig(
@@ -55,7 +55,15 @@ def get_walking_time(origin):
     return "N/A"
 
 
+def sync_sent_status():
+    for row_idx, draft_id in get_drafted_rows():
+        if is_draft_sent(draft_id):
+            update_row_status(row_idx, "Sent")
+            logger.info(f"Row {row_idx} marked Sent (draft {draft_id} gone)")
+
+
 def main():
+    sync_sent_status()
     seen = load_seen()
     seen |= get_seen_ids_from_sheet()  # sheet is persistent; survives cache eviction
     logger.info(f"Loaded {len(seen)} previously seen listing IDs (local + sheet)")
@@ -112,9 +120,10 @@ def main():
             logger.error(f"Telegram error for {lid}: {e}")
 
         try:
-            drafted = create_draft(full)
-            if drafted and row_idx:
+            draft_id = create_draft(full)
+            if draft_id and row_idx:
                 update_row_status(row_idx, "Drafted")
+                store_draft_id(row_idx, draft_id)
         except Exception as e:
             logger.error(f"Gmail draft error for {lid}: {e}")
 

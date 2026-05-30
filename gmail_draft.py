@@ -53,8 +53,28 @@ def create_draft(listing):
             timeout=15,
         )
         resp.raise_for_status()
-        logger.info(f"Gmail draft created for: {link[:60]}")
-        return True
+        draft_id = resp.json().get("id", "")
+        logger.info(f"Gmail draft created (id={draft_id}) for: {link[:60]}")
+        return draft_id
     except Exception as e:
         logger.error(f"Gmail draft error for {listing.get('link', '')}: {e}")
+        return None
+
+
+def is_draft_sent(draft_id):
+    """Returns True if the draft no longer exists in Gmail (was sent or deleted)."""
+    if not draft_id:
+        return False
+    try:
+        creds = get_creds()
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        resp = http_requests.get(
+            f"https://gmail.googleapis.com/gmail/v1/users/me/drafts/{draft_id}",
+            headers={"Authorization": f"Bearer {creds.token}"},
+            timeout=10,
+        )
+        return resp.status_code == 404
+    except Exception as e:
+        logger.warning(f"Could not check draft {draft_id}: {e}")
         return False

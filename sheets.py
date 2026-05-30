@@ -27,6 +27,7 @@ SHEET_HEADERS = [
     "Amenities",
     "Link",
     "Status",
+    "Draft ID",
 ]
 
 
@@ -81,7 +82,7 @@ def setup_sheet_formatting(worksheet):
     for col, width in [
         ("A", 140), ("B", 95),  ("C", 230), ("D", 125),
         ("E", 145), ("F", 110), ("G", 70),  ("H", 260),
-        ("I", 60),  ("J", 90),
+        ("I", 60),  ("J", 90),  ("K", 50),
     ]:
         set_column_width(worksheet, col, width)
 
@@ -117,21 +118,19 @@ def setup_sheet_formatting(worksheet):
         ),
     ))
 
-    # Status: light blue = New, green = Drafted
-    rules.append(ConditionalFormatRule(
-        ranges=[GridRange.from_a1_range("J2:J1000", worksheet)],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition("TEXT_EQ", ["New"]),
-            format=CellFormat(backgroundColor=Color(0.788, 0.878, 0.980)),
-        ),
-    ))
-    rules.append(ConditionalFormatRule(
-        ranges=[GridRange.from_a1_range("J2:J1000", worksheet)],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition("TEXT_EQ", ["Drafted"]),
-            format=CellFormat(backgroundColor=Color(0.714, 0.843, 0.659)),
-        ),
-    ))
+    # Status: blue=New, green=Drafted, orange=Sent
+    for text, color in [
+        ("New",     Color(0.788, 0.878, 0.980)),
+        ("Drafted", Color(0.714, 0.843, 0.659)),
+        ("Sent",    Color(1.000, 0.800, 0.400)),
+    ]:
+        rules.append(ConditionalFormatRule(
+            ranges=[GridRange.from_a1_range("J2:J1000", worksheet)],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition("TEXT_EQ", [text]),
+                format=CellFormat(backgroundColor=color),
+            ),
+        ))
 
     rules.save()
     logger.info("Sheet formatting applied")
@@ -183,6 +182,7 @@ def append_to_sheet(listing):
         "New",
     ]
 
+    row.append("")  # Draft ID — filled later by store_draft_id()
     worksheet.append_row(row, value_input_option="USER_ENTERED")
     row_idx = len(worksheet.get_all_values())
     logger.info(f"Appended row {row_idx}: {listing.get('link', '')[:60]}")
@@ -194,3 +194,26 @@ def update_row_status(row_idx, status):
     sheet = gc.open_by_key(GOOGLE_SHEET_ID)
     sheet.sheet1.update_cell(row_idx, 10, status)  # col J = Status
     logger.info(f"Row {row_idx} status → {status}")
+
+
+def store_draft_id(row_idx, draft_id):
+    gc = _get_client()
+    gc.open_by_key(GOOGLE_SHEET_ID).sheet1.update_cell(row_idx, 11, draft_id)  # col K
+    logger.info(f"Stored draft ID for row {row_idx}")
+
+
+def get_drafted_rows():
+    """Returns [(row_idx, draft_id)] for rows with status Drafted and a stored draft ID."""
+    try:
+        gc = _get_client()
+        all_rows = gc.open_by_key(GOOGLE_SHEET_ID).sheet1.get_all_values()
+        result = []
+        for i, row in enumerate(all_rows[1:], start=2):  # skip header, 1-indexed
+            status   = row[9]  if len(row) > 9  else ""
+            draft_id = row[10] if len(row) > 10 else ""
+            if status == "Drafted" and draft_id:
+                result.append((i, draft_id))
+        return result
+    except Exception as e:
+        logger.warning(f"Could not get drafted rows: {e}")
+        return []
