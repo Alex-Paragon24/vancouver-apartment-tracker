@@ -24,7 +24,7 @@ SHEET_HEADERS = [
     "Walking Time to Bacchus",
     "Posted",
     "Bedrooms",
-    "Amenities",
+    "Available From",
     "Link",
     "Status",
     "Draft ID",
@@ -82,7 +82,7 @@ def setup_sheet_formatting(worksheet):
     for col, width in [
         ("A", 140), ("B", 95),  ("C", 230), ("D", 125),
         ("E", 145), ("F", 110), ("G", 70),  ("H", 260),
-        ("I", 60),  ("J", 90),  ("K", 50),
+        ("H", 120), ("I", 60),  ("J", 90),  ("K", 50),
     ]:
         set_column_width(worksheet, col, width)
 
@@ -177,7 +177,7 @@ def append_to_sheet(listing):
         listing.get("walking_time", "N/A"),
         _age_str(listing.get("posted_ts")),
         listing.get("bedrooms", 2),
-        listing.get("amenities", ""),
+        listing.get("available_from", ""),
         listing.get("link", ""),
         "New",
     ]

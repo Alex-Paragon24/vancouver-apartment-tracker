@@ -26,6 +26,26 @@ HEADERS = {
 # Craigslist's map/JSON search endpoint — returns all listings with coords
 JSONSEARCH_URL = f"{CRAIGSLIST_BASE_URL}/jsonsearch/apa/"
 
+_AVAIL_RE = re.compile(
+    r"avail(?:able)?\.?\s*(?:from|on|:)?\s*"
+    r"(immediately|now|asap"
+    r"|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?"
+    r"|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+    r"\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s*\d{4})?"
+    r"|\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?)",
+    re.IGNORECASE,
+)
+
+
+def _parse_availability(text):
+    if not text:
+        return ""
+    m = _AVAIL_RE.search(text)
+    if not m:
+        return ""
+    val = m.group(1).strip()
+    return "Immediately" if val.lower() in ("immediately", "now", "asap") else val
+
 MAX_LISTING_AGE_HOURS = 6
 
 # Keywords that indicate a furnished / short-term listing we want to skip.
@@ -161,15 +181,18 @@ def get_listing_details(url):
     description = desc_el.get_text(" ", strip=True) if desc_el else ""
 
     bedrooms = MIN_BEDROOMS
-    amenities = []
+    available_from = ""
     for group in soup.select(".attrgroup"):
         for span in group.select("span"):
             text = span.get_text(strip=True)
             br_match = re.match(r"^(\d+)BR", text, re.IGNORECASE)
             if br_match:
                 bedrooms = int(br_match.group(1))
-            elif text and "/" not in text:
-                amenities.append(text)
+            elif not available_from:
+                available_from = _parse_availability(text)
+
+    if not available_from:
+        available_from = _parse_availability(f"{title} {description}")
 
     reply_email = ""
     for a in soup.select("a[href^='mailto:']"):
@@ -184,7 +207,7 @@ def get_listing_details(url):
         "address": address,
         "neighborhood": neighborhood,
         "bedrooms": bedrooms,
-        "amenities": ", ".join(amenities[:8]),
+        "available_from": available_from,
         "furnished": _is_furnished(f"{title} {description}"),
         "reply_email": reply_email,
     }
