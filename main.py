@@ -7,7 +7,7 @@ from datetime import datetime
 from scraper import get_listings, get_listing_details, is_target_neighborhood
 import kijiji_scraper
 from sheets import append_to_sheet, get_seen_ids_from_sheet, update_row_status, store_draft_id, get_drafted_rows
-from telegram_bot import send_notification, send_error_notification
+from telegram_bot import send_notification, send_error_notification, send_run_summary
 from gmail_draft import create_draft, is_draft_sent
 from config import SEEN_LISTINGS_FILE, GOOGLE_MAPS_API_KEY, DESTINATION
 
@@ -76,6 +76,8 @@ def main():
     logger.info(f"Fetched {len(kj)} listings from Kijiji — total {len(listings)}")
 
     new_count = 0
+    new_cl = 0
+    new_kj = 0
     skipped_seen = 0
     skipped_hood = 0
     skipped_furnished = 0
@@ -137,6 +139,10 @@ def main():
 
         seen.add(lid)
         new_count += 1
+        if full.get("source") == "kijiji":
+            new_kj += 1
+        else:
+            new_cl += 1
         logger.info(
             f"New listing processed — id={lid} | "
             f"${full.get('price')} | {neighborhood} | "
@@ -145,11 +151,12 @@ def main():
 
     save_seen(seen)
     logger.info(
-        f"Run complete: {new_count} new | "
+        f"Run complete: {new_count} new (CL={new_cl} KJ={new_kj}) | "
         f"{skipped_seen} already seen | "
         f"{skipped_hood} wrong neighborhood | "
         f"{skipped_furnished} furnished/short-term"
     )
+    send_run_summary(new_cl, new_kj, skipped_seen, skipped_hood, skipped_furnished)
 
 
 if __name__ == "__main__":

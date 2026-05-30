@@ -48,6 +48,30 @@ def _format_message(listing):
     return "\n".join(lines)
 
 
+def send_run_summary(new_cl, new_kj, skipped_seen, skipped_hood, skipped_furnished):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    total = new_cl + new_kj
+    if total:
+        status = f"🏠 <b>{total} new listing{'s' if total > 1 else ''}</b>"
+        breakdown = f"Craigslist: {new_cl} · Kijiji: {new_kj}"
+    else:
+        status = "✅ <b>Run complete — nothing new</b>"
+        breakdown = f"Craigslist: {new_cl} · Kijiji: {new_kj}"
+
+    text = (
+        f"{status}\n"
+        f"{breakdown}\n"
+        f"<i>skipped: {skipped_seen} seen · {skipped_hood} wrong area · {skipped_furnished} furnished</i>"
+    )
+
+    async def _send():
+        async with Bot(token=TELEGRAM_BOT_TOKEN) as bot:
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=text, parse_mode="HTML")
+
+    asyncio.run(_send())
+
+
 def send_error_notification(error_text):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         return
