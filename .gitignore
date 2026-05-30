@@ -1,0 +1,13 @@
+.env
+token.json
+client_secret*.json
+seen_listings.json
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.venv/
+venv/
+venv_arm64/

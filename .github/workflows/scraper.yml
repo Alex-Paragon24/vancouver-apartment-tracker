@@ -1,0 +1,51 @@
+name: Vancouver Apartment Scraper
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"   # every 2 hours
+  workflow_dispatch:          # allow manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Restores the most recent seen_listings.json from cache across runs.
+      # Cache keys are immutable, so we save with run_id and restore with prefix.
+      - name: Restore seen listings
+        uses: actions/cache/restore@v4
+        with:
+          path: seen_listings.json
+          key: seen-listings-${{ github.run_id }}
+          restore-keys: |
+            seen-listings-
+
+      - name: Decode Google OAuth token
+        run: echo "${{ secrets.GOOGLE_OAUTH_TOKEN }}" | base64 -d > token.json
+
+      - name: Run scraper
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python main.py
+
+      - name: Save seen listings
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_listings.json
+          key: seen-listings-${{ github.run_id }}
