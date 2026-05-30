@@ -2,19 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Vancouver Apartment Tracker</title>
+  <meta name="description" content="Live map of new 1–2BR rental listings in Downtown Vancouver — Craigslist + Kijiji, updated hourly.">
+
+  <!-- Open Graph (preview in iMessage, Telegram, Slack, etc.) -->
+  <meta property="og:title" content="🏠 Vancouver Apartment Tracker">
+  <meta property="og:description" content="Live map of new 1–2BR rentals in Downtown, Yaletown, West End & Coal Harbour. Updated every hour.">
+  <meta property="og:image" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/preview.png">
+  <meta property="og:url" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="🏠 Vancouver Apartment Tracker">
+  <meta name="twitter:description" content="Live map of new 1–2BR rentals in Downtown Vancouver. Updated every hour.">
+  <meta name="twitter:image" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/preview.png">
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- ── Header ── -->
   <header>
     <div class="header-left">
       <span class="logo">🏠</span>
       <h1>Vancouver Apartments</h1>
       <span id="count" class="count"></span>
     </div>
-    <div class="filters">
+    <button class="filter-toggle" id="filter-toggle" aria-label="Filters">⚙ Filters</button>
+  </header>
+
+  <!-- ── Filter bar ── -->
+  <div class="filter-bar" id="filter-bar">
+    <div class="filter-row">
       <div class="filter-group">
         <button class="filter-btn active" data-br="all">All</button>
         <button class="filter-btn" data-br="1">1BR</button>
@@ -30,10 +52,11 @@
         <span class="price-label">Up to <b id="price-val">$3,500</b></span>
         <input type="range" id="price-slider" min="1500" max="3500" step="100" value="3500">
       </div>
-      <button id="refresh-btn" class="refresh-btn" title="Refresh">↻</button>
+      <button id="refresh-btn" class="refresh-btn" title="Refresh">↻ Refresh</button>
     </div>
-  </header>
+  </div>
 
+  <!-- ── Main content ── -->
   <main>
     <aside id="sidebar">
       <div id="listings"></div>
@@ -41,6 +64,18 @@
     </aside>
     <div id="map"></div>
   </main>
+
+  <!-- ── Mobile tab bar ── -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="list">
+      <span class="tab-icon">≡</span>
+      <span class="tab-label">List</span>
+    </button>
+    <button class="tab-btn" data-tab="map">
+      <span class="tab-icon">🗺</span>
+      <span class="tab-label">Map</span>
+    </button>
+  </nav>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
