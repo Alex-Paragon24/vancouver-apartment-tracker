@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from config import (
     CRAIGSLIST_BASE_URL,
-    TARGET_NEIGHBORHOODS, MAX_PRICE, MIN_BEDROOMS, MAX_BEDROOMS,
+    TARGET_NEIGHBORHOODS, MAX_PRICE, MIN_BEDROOMS, MAX_BEDROOMS, PRICE_BY_BEDROOMS,
 )
 
 logger = logging.getLogger(__name__)
@@ -108,11 +108,12 @@ def get_listings():
 
     listings = []
     for item in items:
-        price = item.get("price")
-        if price and price > MAX_PRICE:
-            continue
         bedrooms = item.get("bedrooms", 0)
         if bedrooms < MIN_BEDROOMS or bedrooms > MAX_BEDROOMS:
+            continue
+        price = item.get("price")
+        budget = PRICE_BY_BEDROOMS.get(bedrooms, MAX_PRICE)
+        if price and price > budget:
             continue
 
         posted = item.get("PostedDate", 0)

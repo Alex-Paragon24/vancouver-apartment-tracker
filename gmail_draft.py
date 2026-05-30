@@ -37,7 +37,9 @@ def create_draft(listing):
         price = listing.get("price")
         price_str = f"${price:,}" if isinstance(price, int) else ""
 
-        subject = f"Interested in your {price_str} 2BR listing — {neighborhood}"
+        bedrooms = listing.get("bedrooms", "")
+        br_label = f"{bedrooms}BR " if bedrooms else ""
+        subject = f"Interested in your {price_str} {br_label}listing — {neighborhood}"
         body = TEMPLATE
         to = listing.get("reply_email", "")
 
