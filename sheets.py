@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/gmail.compose",
 ]
 
 SHEET_HEADERS = [
@@ -41,23 +42,23 @@ def _age_str(posted_ts):
     return f"{hours // 24} дн. назад"
 
 
-def _get_client():
+def get_creds():
     creds = None
-
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", SCOPES)
             creds = flow.run_local_server(port=0)
-
         with open("token.json", "w") as f:
             f.write(creds.to_json())
+    return creds
 
-    return gspread.authorize(creds)
+
+def _get_client():
+    return gspread.authorize(get_creds())
 
 
 def _ensure_headers(worksheet):

@@ -171,6 +171,13 @@ def get_listing_details(url):
             elif text and "/" not in text:
                 amenities.append(text)
 
+    reply_email = ""
+    for a in soup.select("a[href^='mailto:']"):
+        href = a.get("href", "")
+        if "craigslist.org" in href:
+            reply_email = href.replace("mailto:", "").strip()
+            break
+
     return {
         "title": title,
         "price": price,
@@ -179,6 +186,7 @@ def get_listing_details(url):
         "bedrooms": bedrooms,
         "amenities": ", ".join(amenities[:8]),
         "furnished": _is_furnished(f"{title} {description}"),
+        "reply_email": reply_email,
     }
 
 

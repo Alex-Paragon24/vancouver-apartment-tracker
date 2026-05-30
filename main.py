@@ -7,6 +7,7 @@ from datetime import datetime
 from scraper import get_listings, get_listing_details, is_target_neighborhood
 from sheets import append_to_sheet, get_seen_ids_from_sheet
 from telegram_bot import send_notification
+from gmail_draft import create_draft
 from config import SEEN_LISTINGS_FILE, GOOGLE_MAPS_API_KEY, DESTINATION
 
 logging.basicConfig(
@@ -108,6 +109,11 @@ def main():
             send_notification(full)
         except Exception as e:
             logger.error(f"Telegram error for {lid}: {e}")
+
+        try:
+            create_draft(full)
+        except Exception as e:
+            logger.error(f"Gmail draft error for {lid}: {e}")
 
         seen.add(lid)
         new_count += 1
