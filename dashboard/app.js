@@ -1,6 +1,6 @@
 const SHEET_ID  = '1BcxczxXsZZ4dMaPEgBmRekdFCLiObSkp1kGaUXF_UB8';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-const BACCHUS   = [49.27905, -123.12338]; // 845 Hornby St
+const BACCHUS   = [49.2823665, -123.1227769]; // 845 Hornby St (Wedgewood Hotel)
 
 // ── Map ────────────────────────────────────────────────────────────
 const map = L.map('map').setView([49.283, -123.121], 14);
