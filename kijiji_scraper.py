@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import requests
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
@@ -20,7 +21,7 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-MAX_LISTING_AGE_HOURS = 48
+MAX_LISTING_AGE_HOURS = 120  # 5 days
 
 
 def _bedroom_param():
@@ -72,7 +73,7 @@ def get_listings():
 
     listings = []
     for ad in raw.values():
-        # Bedrooms
+        # Bedrooms — check attributes first, fall back to description text
         bedrooms = None
         for attr in ad.get("attributes", {}).get("all", []):
             if attr.get("canonicalName") == "numberbedrooms":
@@ -80,6 +81,9 @@ def get_listings():
                     bedrooms = int(attr["canonicalValues"][0])
                 except (ValueError, IndexError, TypeError):
                     pass
+        if bedrooms is None:
+            m = re.search(r'(\d+)\s*(?:bed(?:room)?|br)\b', ad.get("description", ""), re.IGNORECASE)
+            bedrooms = int(m.group(1)) if m else None
         if bedrooms is None or not (MIN_BEDROOMS <= bedrooms <= MAX_BEDROOMS):
             continue
 
