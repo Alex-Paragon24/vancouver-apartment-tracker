@@ -1,6 +1,6 @@
 const SHEET_ID  = '1BcxczxXsZZ4dMaPEgBmRekdFCLiObSkp1kGaUXF_UB8';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-const BACCHUS   = [49.2793, -123.1234];
+const BACCHUS   = [49.27905, -123.12338]; // 845 Hornby St
 
 // ── Map ────────────────────────────────────────────────────────────
 const map = L.map('map').setView([49.283, -123.121], 14);
@@ -42,7 +42,7 @@ async function geocode(address) {
   return null;
 }
 
-// ── CSV parser ─────────────────────────────────────────────────────
+// ── CSV ────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const rows = []; let cur = '', inQ = false, row = [];
   for (let i = 0; i < text.length; i++) {
@@ -129,7 +129,6 @@ function render() {
   const container = document.getElementById('listings');
   const empty     = document.getElementById('empty');
   container.innerHTML = '';
-
   if (!list.length) { empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
 
@@ -138,23 +137,22 @@ function render() {
     card.className = 'card' + (activeId === l._idx ? ' active' : '');
     card.dataset.id = l._idx;
 
-    const priceStr  = l.price ? `$${l.price.toLocaleString()}` : 'N/A';
-    const srcLabel  = l.source === 'kijiji' ? 'Kijiji' : 'CL';
-    const srcClass  = `source-${l.source}`;
-    const addr      = displayAddress(l);
+    const priceStr = l.price ? `$${l.price.toLocaleString()}` : 'N/A';
+    const addr     = displayAddress(l);
+    const srcLabel = l.source === 'kijiji' ? 'Kijiji' : 'CL';
 
     const meta = [
-      l.bedrooms      ? `🛏 ${l.bedrooms}BR`       : '',
-      l.walkTime      ? `🚶 ${l.walkTime}`          : '',
-      l.posted        ? `🕐 ${l.posted}`            : '',
-      l.availableFrom ? `📅 ${l.availableFrom}`     : '',
+      l.bedrooms      ? `🛏 ${l.bedrooms}BR`   : '',
+      l.walkTime      ? `🚶 ${l.walkTime}`      : '',
+      l.posted        ? `🕐 ${l.posted}`        : '',
+      l.availableFrom ? `📅 ${l.availableFrom}` : '',
     ].filter(Boolean).join('  ·  ');
 
     card.innerHTML = `
       <div class="card-top">
         <span class="price ${priceColor(l.price)}">${priceStr}<span class="per-mo">/mo</span></span>
         <div class="badges">
-          <span class="source-tag ${srcClass}">${srcLabel}</span>
+          <span class="source-tag source-${l.source}">${srcLabel}</span>
           <span class="status-badge status-${l.status}">${l.status}</span>
         </div>
       </div>
@@ -165,7 +163,6 @@ function render() {
         <a class="btn btn-green"   href="https://mail.google.com/mail/u/0/#drafts" target="_blank" rel="noopener">✉ Drafts</a>
       </div>
     `;
-
     card.addEventListener('click', e => {
       if (e.target.closest('a')) return;
       setActive(l._idx);
@@ -178,10 +175,7 @@ function setActive(id) {
   activeId = id;
   render();
   const m = markers[id];
-  if (m) {
-    map.setView(m.getLatLng(), 16, { animate: true });
-    m.openPopup();
-  }
+  if (m) { map.setView(m.getLatLng(), 16, { animate: true }); m.openPopup(); }
   document.querySelector(`.card[data-id="${id}"]`)
     ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   if (window.innerWidth <= 700) switchTab('map');
@@ -189,8 +183,8 @@ function setActive(id) {
 
 function addMarker(l, coords) {
   const m = L.marker(coords, { icon: circleIcon(markerColor(l.price)) });
-  const priceStr = l.price ? `$${l.price.toLocaleString()}` : 'N/A';
   const addr = displayAddress(l);
+  const priceStr = l.price ? `$${l.price.toLocaleString()}` : 'N/A';
   m.bindPopup(`
     <div class="popup-price ${priceColor(l.price)}">${priceStr}/mo</div>
     <div class="popup-addr">${addr}</div>
@@ -209,79 +203,77 @@ async function load() {
     const resp = await fetch(SHEET_URL + '&t=' + Date.now());
     const text = await resp.text();
     const rows = parseCSV(text).slice(1);
-
     Object.values(markers).forEach(m => map.removeLayer(m));
     markers = {};
     allListings = rows.filter(r => r.length > 8 && r[8]).map(rowToListing);
     render();
-
     for (const l of allListings) {
       if (markers[l._idx]) continue;
       const coords = await geocode(l.address);
       if (coords) addMarker(l, coords);
     }
   } catch (err) {
-    document.getElementById('count').textContent = 'Error — make sheet public';
+    document.getElementById('count').textContent = 'Error — check sheet is public';
     console.error(err);
   }
 }
 
-// ── Tab switching ──────────────────────────────────────────────────
+// ── Mobile tab ─────────────────────────────────────────────────────
 const appContent = document.getElementById('app-content');
 
 function switchTab(tab) {
-  appContent.classList.remove('show-list', 'show-map');
-  appContent.classList.add('show-' + tab);
+  if (tab === 'map') {
+    appContent.classList.add('show-map');
+    setTimeout(() => map.invalidateSize(), 10);
+  } else {
+    appContent.classList.remove('show-map');
+  }
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === tab)
   );
-  if (tab === 'map') setTimeout(() => map.invalidateSize(), 10);
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn =>
   btn.addEventListener('click', () => switchTab(btn.dataset.tab))
 );
 
-// ── Filters ────────────────────────────────────────────────────────
-function applyBr(val) {
-  filters.br = val;
-  document.querySelectorAll('[data-br],[data-br-m]').forEach(b => {
-    const v = b.dataset.br || b.dataset.brM;
-    b.classList.toggle('active', v === val);
-  });
-  render();
+// ── Filter events ──────────────────────────────────────────────────
+function setActiveButtons(attr, val) {
+  document.querySelectorAll(`[${attr}]`).forEach(b =>
+    b.classList.toggle('active', b.getAttribute(attr) === val)
+  );
 }
-function applyStatus(val) {
-  filters.status = val;
-  document.querySelectorAll('[data-status],[data-status-m]').forEach(b => {
-    const v = b.dataset.status || b.dataset.statusM;
-    b.classList.toggle('active', v === val);
-  });
-  render();
-}
-function applyPrice(val) {
+
+document.querySelectorAll('[data-br]').forEach(btn =>
+  btn.addEventListener('click', () => {
+    filters.br = btn.dataset.br;
+    setActiveButtons('data-br', filters.br);
+    render();
+  })
+);
+
+document.querySelectorAll('[data-status]').forEach(btn =>
+  btn.addEventListener('click', () => {
+    filters.status = btn.dataset.status;
+    setActiveButtons('data-status', filters.status);
+    render();
+  })
+);
+
+function syncPrice(val) {
   filters.maxPrice = parseInt(val);
-  document.getElementById('price-val-d').textContent = `$${parseInt(val).toLocaleString()}`;
-  document.getElementById('price-val-m').textContent = `$${parseInt(val).toLocaleString()}`;
+  document.getElementById('price-val-d').textContent = `$${filters.maxPrice.toLocaleString()}`;
+  document.getElementById('price-val-m').textContent = `$${filters.maxPrice.toLocaleString()}`;
   document.getElementById('price-slider-d').value = val;
   document.getElementById('price-slider-m').value = val;
   render();
 }
 
-document.querySelectorAll('[data-br]').forEach(b =>
-  b.addEventListener('click', () => applyBr(b.dataset.br)));
-document.querySelectorAll('[data-br-m]').forEach(b =>
-  b.addEventListener('click', () => applyBr(b.dataset.brM)));
-document.querySelectorAll('[data-status]').forEach(b =>
-  b.addEventListener('click', () => applyStatus(b.dataset.status)));
-document.querySelectorAll('[data-status-m]').forEach(b =>
-  b.addEventListener('click', () => applyStatus(b.dataset.statusM)));
-document.getElementById('price-slider-d').addEventListener('input', e => applyPrice(e.target.value));
-document.getElementById('price-slider-m').addEventListener('input', e => applyPrice(e.target.value));
+document.getElementById('price-slider-d').addEventListener('input', e => syncPrice(e.target.value));
+document.getElementById('price-slider-m').addEventListener('input', e => syncPrice(e.target.value));
 document.getElementById('refresh-btn-d').addEventListener('click', load);
 document.getElementById('refresh-btn-m').addEventListener('click', load);
 
-// Mobile filter drawer toggle
 document.getElementById('filter-toggle').addEventListener('click', () => {
   document.getElementById('mobile-drawer').classList.toggle('open');
 });

@@ -1,25 +1,31 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --navy: #1a2b4a;
-  --bg: #f0f2f5;
-  --card: #fff;
+  --navy:   #1a2b4a;
+  --bg:     #f0f2f5;
+  --card:   #fff;
+  --border: #d4d8e0;
   --green:  #2e7d32;
   --orange: #d84315;
   --red:    #b71c1c;
 }
+
+/* ══════════════════════════════════
+   DESKTOP — flex column, grid layout
+══════════════════════════════════ */
 
 html, body { height: 100%; overflow: hidden; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Header ── */
 header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+  flex-shrink: 0;
   height: 52px;
   background: var(--navy);
   color: #fff;
@@ -27,32 +33,23 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  z-index: 200;
+  gap: 16px;
+  z-index: 10;
   box-shadow: 0 2px 10px rgba(0,0,0,.3);
 }
 
-.header-left { display: flex; align-items: center; gap: 8px; }
+.header-left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .logo { font-size: 1.2rem; }
-h1 { font-size: 0.95rem; font-weight: 600; }
-.count { font-size: 0.73rem; color: rgba(255,255,255,.5); margin-left: 6px; }
+h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
+.count { font-size: 0.73rem; color: rgba(255,255,255,.5); margin-left: 4px; white-space: nowrap; }
 
-.filter-toggle {
-  background: rgba(255,255,255,.15);
-  border: 1.5px solid rgba(255,255,255,.3);
-  color: #fff;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: none;
-}
-
-/* ── Desktop filter bar (inline in header) ── */
+/* Desktop filters */
 .desktop-filters {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .filter-group { display: flex; gap: 4px; }
@@ -74,7 +71,7 @@ h1 { font-size: 0.95rem; font-weight: 600; }
 
 .price-filter { display: flex; align-items: center; gap: 6px; }
 .price-label  { font-size: 0.76rem; color: rgba(255,255,255,.8); white-space: nowrap; }
-#price-slider { width: 80px; accent-color: #7fa8e8; cursor: pointer; }
+#price-slider-d { width: 80px; accent-color: #7fa8e8; cursor: pointer; }
 
 .refresh-btn {
   background: rgba(255,255,255,.12);
@@ -89,35 +86,25 @@ h1 { font-size: 0.95rem; font-weight: 600; }
 }
 .refresh-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
 
-/* ── Mobile filter drawer ── */
-.mobile-filter-drawer {
-  display: none;
-  position: fixed;
-  top: 52px; left: 0; right: 0;
-  background: #243a63;
-  z-index: 190;
-  padding: 12px 16px;
-  gap: 10px;
-  flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
-}
-.mobile-filter-drawer.open { display: flex; }
+/* Mobile-only elements — hidden on desktop */
+.filter-toggle       { display: none; }
+.mobile-filter-drawer { display: none; }
+.tab-bar             { display: none; }
 
-.mf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-/* ── Layout ── */
+/* ── Main content area ── */
 .app-content {
-  position: fixed;
-  top: 52px; bottom: 0; left: 0; right: 0;
+  flex: 1;
   display: grid;
   grid-template-columns: 370px 1fr;
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* ── Sidebar ── */
 #sidebar {
   overflow-y: auto;
   background: var(--bg);
-  border-right: 1px solid #d4d8e0;
+  border-right: 1px solid var(--border);
   -webkit-overflow-scrolling: touch;
 }
 #sidebar::-webkit-scrollbar { width: 4px; }
@@ -125,12 +112,7 @@ h1 { font-size: 0.95rem; font-weight: 600; }
 
 #listings { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 
-.empty {
-  padding: 48px 20px;
-  text-align: center;
-  color: #999;
-  font-size: 0.9rem;
-}
+.empty { padding: 48px 20px; text-align: center; color: #999; font-size: 0.9rem; }
 .hidden { display: none !important; }
 
 /* ── Card ── */
@@ -155,12 +137,12 @@ h1 { font-size: 0.95rem; font-weight: 600; }
 }
 
 .price { font-size: 1.15rem; font-weight: 700; line-height: 1.2; }
-.per-mo { font-size: 0.65em; font-weight: 400; color: #aaa; }
+.per-mo { font-size: 0.6em; font-weight: 400; color: #aaa; }
 .price.green  { color: var(--green); }
 .price.orange { color: var(--orange); }
 .price.red    { color: var(--red); }
 
-.badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.badges { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
 .source-tag {
   font-size: 0.62rem; font-weight: 700;
@@ -201,8 +183,9 @@ h1 { font-size: 0.95rem; font-weight: 600; }
   -webkit-tap-highlight-color: transparent;
 }
 .btn:active { transform: scale(.95); opacity: .85; }
-.btn-primary   { background: var(--navy); color: #fff; }
-.btn-green     { background: #e8f5e9; color: #2e7d32; }
+.btn:hover  { opacity: .85; }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-green   { background: #e8f5e9; color: #2e7d32; }
 
 /* ── Map ── */
 #map { z-index: 1; }
@@ -214,57 +197,96 @@ h1 { font-size: 0.95rem; font-weight: 600; }
 .popup-link  { font-size: 0.78rem; color: var(--navy); font-weight: 600; text-decoration: none; }
 .popup-link:hover { text-decoration: underline; }
 
-/* ── Tab bar (mobile only) ── */
-.tab-bar { display: none; }
 
-/* ════════════════════════════════
+/* ══════════════════════════════════
    MOBILE  ≤ 700px
-════════════════════════════════ */
+══════════════════════════════════ */
 @media (max-width: 700px) {
 
+  /* Switch to fixed layout for mobile */
+  body { display: block; }
+
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    justify-content: space-between;
+  }
+
   .desktop-filters { display: none; }
-  .filter-toggle   { display: block; }
+  .filter-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,.15);
+    border: 1.5px solid rgba(255,255,255,.3);
+    color: #fff;
+    padding: 6px 13px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
 
+  /* Mobile filter drawer */
+  .mobile-filter-drawer {
+    display: none;
+    position: fixed;
+    top: 52px; left: 0; right: 0;
+    background: #243a63;
+    z-index: 190;
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  }
+  .mobile-filter-drawer.open { display: flex; }
+
+  .mf-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  #price-slider-m { flex: 1; min-width: 80px; accent-color: #7fa8e8; }
+  .price-label-m { font-size: 0.76rem; color: rgba(255,255,255,.8); white-space: nowrap; }
+
+  /* Content area */
   .app-content {
-    grid-template-columns: 1fr;
-    bottom: 56px; /* space for tab bar */
+    position: fixed;
+    top: 52px; bottom: 56px; left: 0; right: 0;
+    display: block; /* not grid on mobile */
   }
 
-  #sidebar, #map {
-    grid-column: 1;
-    grid-row: 1;
-    width: 100%;
-    height: 100%;
+  #sidebar {
+    position: absolute;
+    inset: 0;
+    border-right: none;
   }
 
-  #map { display: none; }
+  #map {
+    position: absolute;
+    inset: 0;
+    display: none;
+  }
 
-  /* tab states */
-  .app-content.show-map    #sidebar { display: none; }
-  .app-content.show-map    #map     { display: block; }
-  .app-content.show-list   #map     { display: none; }
-  .app-content.show-list   #sidebar { display: block; }
+  /* Tab states */
+  .app-content.show-map #sidebar { display: none; }
+  .app-content.show-map #map     { display: block; }
 
-  /* tab bar */
+  /* Tab bar */
   .tab-bar {
     display: flex;
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: 56px;
     background: #fff;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border);
     z-index: 200;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .tab-btn {
     flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 3px;
+    align-items: center; justify-content: center; gap: 2px;
     background: none; border: none; cursor: pointer;
-    color: #aaa; font-size: 0.68rem; font-weight: 600;
-    letter-spacing: .3px;
+    color: #aaa; font-size: 0.7rem; font-weight: 600;
     -webkit-tap-highlight-color: transparent;
   }
   .tab-btn.active { color: var(--navy); }
-  .tab-icon { font-size: 1.25rem; line-height: 1; }
+  .tab-icon { font-size: 1.3rem; line-height: 1; }
 }
