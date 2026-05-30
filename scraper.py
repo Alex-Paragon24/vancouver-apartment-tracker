@@ -26,7 +26,7 @@ HEADERS = {
 # Craigslist's map/JSON search endpoint — returns all listings with coords
 JSONSEARCH_URL = f"{CRAIGSLIST_BASE_URL}/jsonsearch/apa/"
 
-MAX_LISTING_AGE_DAYS = 14
+MAX_LISTING_AGE_HOURS = 6
 
 # Keywords that indicate a furnished / short-term listing we want to skip.
 # Check "unfurnished"/"unfurn" first so we don't false-positive on those.
@@ -84,7 +84,7 @@ def get_listings():
     items = raw[0] if isinstance(raw, list) and raw else []
     logger.info(f"jsonsearch returned {len(items)} raw items (before price/bedroom/geo filter)")
 
-    cutoff_ts = datetime.now(timezone.utc).timestamp() - MAX_LISTING_AGE_DAYS * 86400
+    cutoff_ts = datetime.now(timezone.utc).timestamp() - MAX_LISTING_AGE_HOURS * 3600
 
     listings = []
     for item in items:

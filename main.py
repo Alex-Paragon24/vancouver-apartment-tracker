@@ -5,7 +5,7 @@ import requests
 from datetime import datetime
 
 from scraper import get_listings, get_listing_details, is_target_neighborhood
-from sheets import append_to_sheet
+from sheets import append_to_sheet, get_seen_ids_from_sheet
 from telegram_bot import send_notification
 from config import SEEN_LISTINGS_FILE, GOOGLE_MAPS_API_KEY, DESTINATION
 
@@ -56,7 +56,8 @@ def get_walking_time(origin):
 
 def main():
     seen = load_seen()
-    logger.info(f"Loaded {len(seen)} previously seen listing IDs")
+    seen |= get_seen_ids_from_sheet()  # sheet is persistent; survives cache eviction
+    logger.info(f"Loaded {len(seen)} previously seen listing IDs (local + sheet)")
 
     listings = get_listings()
     logger.info(f"Fetched {len(listings)} raw listings from Craigslist")

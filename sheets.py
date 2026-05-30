@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import gspread
 from google.oauth2.credentials import Credentials
@@ -50,6 +51,24 @@ def _ensure_headers(worksheet):
     if not first_row:
         worksheet.append_row(SHEET_HEADERS, value_input_option="RAW")
         logger.info("Wrote sheet headers")
+
+
+def get_seen_ids_from_sheet():
+    """Read posting IDs already in the sheet — used as persistent dedup store."""
+    try:
+        gc = _get_client()
+        sheet = gc.open_by_key(GOOGLE_SHEET_ID)
+        links = sheet.sheet1.col_values(8)[1:]  # col 8 = Link, skip header
+        ids = set()
+        for link in links:
+            m = re.search(r'/(\d+)\.html', link)
+            if m:
+                ids.add(m.group(1))
+        logger.info(f"Loaded {len(ids)} seen IDs from Google Sheet")
+        return ids
+    except Exception as e:
+        logger.warning(f"Could not load seen IDs from sheet: {e}")
+        return set()
 
 
 def append_to_sheet(listing):
