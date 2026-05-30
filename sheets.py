@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import gspread
+from datetime import datetime, timezone
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -20,11 +21,24 @@ SHEET_HEADERS = [
     "Address",
     "Neighborhood",
     "Walking Time to Bacchus",
+    "Posted",
     "Bedrooms",
     "Amenities",
     "Link",
     "Status",
 ]
+
+
+def _age_str(posted_ts):
+    if not posted_ts:
+        return ""
+    delta = datetime.now(timezone.utc).timestamp() - posted_ts
+    hours = int(delta // 3600)
+    if hours < 1:
+        return "< 1 ч."
+    if hours < 24:
+        return f"{hours} ч. назад"
+    return f"{hours // 24} дн. назад"
 
 
 def _get_client():
@@ -58,7 +72,7 @@ def get_seen_ids_from_sheet():
     try:
         gc = _get_client()
         sheet = gc.open_by_key(GOOGLE_SHEET_ID)
-        links = sheet.sheet1.col_values(8)[1:]  # col 8 = Link, skip header
+        links = sheet.sheet1.col_values(9)[1:]  # col 9 = Link (after adding Posted col), skip header
         ids = set()
         for link in links:
             m = re.search(r'/(\d+)\.html', link)
@@ -87,6 +101,7 @@ def append_to_sheet(listing):
         listing.get("address", ""),
         listing.get("neighborhood", ""),
         listing.get("walking_time", "N/A"),
+        _age_str(listing.get("posted_ts")),
         listing.get("bedrooms", 2),
         listing.get("amenities", ""),
         listing.get("link", ""),
