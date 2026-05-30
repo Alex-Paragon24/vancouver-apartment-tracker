@@ -54,5 +54,7 @@ def create_draft(listing):
         )
         resp.raise_for_status()
         logger.info(f"Gmail draft created for: {link[:60]}")
+        return True
     except Exception as e:
         logger.error(f"Gmail draft error for {listing.get('link', '')}: {e}")
+        return False

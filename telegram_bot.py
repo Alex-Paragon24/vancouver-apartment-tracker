@@ -48,6 +48,21 @@ def _format_message(listing):
     return "\n".join(lines)
 
 
+def send_error_notification(error_text):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+
+    async def _send():
+        async with Bot(token=TELEGRAM_BOT_TOKEN) as bot:
+            await bot.send_message(
+                chat_id=TELEGRAM_CHAT_ID,
+                text=f"⚠️ <b>Scraper error</b>\n\n<code>{error_text[:1000]}</code>",
+                parse_mode="HTML",
+            )
+
+    asyncio.run(_send())
+
+
 def send_notification(listing):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         logger.warning("Telegram credentials not set — skipping notification")

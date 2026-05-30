@@ -5,8 +5,8 @@ import requests
 from datetime import datetime
 
 from scraper import get_listings, get_listing_details, is_target_neighborhood
-from sheets import append_to_sheet, get_seen_ids_from_sheet
-from telegram_bot import send_notification
+from sheets import append_to_sheet, get_seen_ids_from_sheet, update_row_status
+from telegram_bot import send_notification, send_error_notification
 from gmail_draft import create_draft
 from config import SEEN_LISTINGS_FILE, GOOGLE_MAPS_API_KEY, DESTINATION
 
@@ -100,8 +100,9 @@ def main():
         full.setdefault("bedrooms", 2)
         full.setdefault("amenities", "")
 
+        row_idx = None
         try:
-            append_to_sheet(full)
+            row_idx = append_to_sheet(full)
         except Exception as e:
             logger.error(f"Google Sheets error for {lid}: {e}")
 
@@ -111,7 +112,9 @@ def main():
             logger.error(f"Telegram error for {lid}: {e}")
 
         try:
-            create_draft(full)
+            drafted = create_draft(full)
+            if drafted and row_idx:
+                update_row_status(row_idx, "Drafted")
         except Exception as e:
             logger.error(f"Gmail draft error for {lid}: {e}")
 
@@ -133,4 +136,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger.exception("Unhandled error in scraper run")
+        send_error_notification(str(e))
