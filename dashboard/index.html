@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vancouver Apartment Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span class="logo">🏠</span>
+      <h1>Vancouver Apartments</h1>
+      <span id="count" class="count"></span>
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <button class="filter-btn active" data-br="all">All</button>
+        <button class="filter-btn" data-br="1">1BR</button>
+        <button class="filter-btn" data-br="2">2BR</button>
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-status="all">All status</button>
+        <button class="filter-btn" data-status="New">New</button>
+        <button class="filter-btn" data-status="Drafted">Drafted</button>
+        <button class="filter-btn" data-status="Sent">Sent</button>
+      </div>
+      <div class="price-filter">
+        <span class="price-label">Up to <b id="price-val">$3,500</b></span>
+        <input type="range" id="price-slider" min="1500" max="3500" step="100" value="3500">
+      </div>
+      <button id="refresh-btn" class="refresh-btn" title="Refresh">↻</button>
+    </div>
+  </header>
+
+  <main>
+    <aside id="sidebar">
+      <div id="listings"></div>
+      <div id="empty" class="empty hidden">No listings match your filters.</div>
+    </aside>
+    <div id="map"></div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
