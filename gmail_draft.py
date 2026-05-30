@@ -23,9 +23,6 @@ works for you.
 
 Thank you,
 Alex & Karen
-
----
-Listing: {link}
 """
 
 
@@ -41,7 +38,7 @@ def create_draft(listing):
         price_str = f"${price:,}" if isinstance(price, int) else ""
 
         subject = f"Interested in your {price_str} 2BR listing — {neighborhood}"
-        body = TEMPLATE.format(link=link)
+        body = TEMPLATE
         to = listing.get("reply_email", "")
 
         msg = MIMEText(body)
