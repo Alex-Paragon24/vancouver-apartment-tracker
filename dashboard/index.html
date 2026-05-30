@@ -4,76 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Vancouver Apartment Tracker</title>
-  <meta name="description" content="Live map of new 1–2BR rental listings in Downtown Vancouver — Craigslist + Kijiji, updated hourly.">
 
-  <!-- Open Graph (preview in iMessage, Telegram, Slack, etc.) -->
-  <meta property="og:title" content="🏠 Vancouver Apartment Tracker">
-  <meta property="og:description" content="Live map of new 1–2BR rentals in Downtown, Yaletown, West End & Coal Harbour. Updated every hour.">
-  <meta property="og:image" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/preview.png">
-  <meta property="og:url" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/">
-  <meta property="og:type" content="website">
-
-  <!-- Twitter / X -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="🏠 Vancouver Apartment Tracker">
-  <meta name="twitter:description" content="Live map of new 1–2BR rentals in Downtown Vancouver. Updated every hour.">
-  <meta name="twitter:image" content="https://alex-paragon24.github.io/vancouver-apartment-tracker/preview.png">
+  <meta name="description" content="Live map of new 1–2BR rentals in Downtown Vancouver — Craigslist + Kijiji, updated hourly.">
+  <meta property="og:title"       content="🏠 Vancouver Apartment Tracker">
+  <meta property="og:description" content="Live map of 1–2BR rentals in Downtown, Yaletown, West End & Coal Harbour. Updated hourly.">
+  <meta property="og:image"       content="https://alex-paragon24.github.io/vancouver-apartment-tracker/preview.png">
+  <meta property="og:url"         content="https://alex-paragon24.github.io/vancouver-apartment-tracker/">
+  <meta property="og:type"        content="website">
+  <meta name="twitter:card"       content="summary_large_image">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ── Header ── -->
   <header>
     <div class="header-left">
       <span class="logo">🏠</span>
       <h1>Vancouver Apartments</h1>
       <span id="count" class="count"></span>
     </div>
-    <button class="filter-toggle" id="filter-toggle" aria-label="Filters">⚙ Filters</button>
-  </header>
 
-  <!-- ── Filter bar ── -->
-  <div class="filter-bar" id="filter-bar">
-    <div class="filter-row">
+    <!-- Desktop filters -->
+    <div class="desktop-filters">
       <div class="filter-group">
         <button class="filter-btn active" data-br="all">All</button>
         <button class="filter-btn" data-br="1">1BR</button>
         <button class="filter-btn" data-br="2">2BR</button>
       </div>
       <div class="filter-group">
-        <button class="filter-btn active" data-status="all">All status</button>
+        <button class="filter-btn active" data-status="all">All</button>
         <button class="filter-btn" data-status="New">New</button>
         <button class="filter-btn" data-status="Drafted">Drafted</button>
         <button class="filter-btn" data-status="Sent">Sent</button>
       </div>
       <div class="price-filter">
-        <span class="price-label">Up to <b id="price-val">$3,500</b></span>
-        <input type="range" id="price-slider" min="1500" max="3500" step="100" value="3500">
+        <span class="price-label">Max <b id="price-val-d">$3,500</b></span>
+        <input type="range" id="price-slider-d" min="1500" max="3500" step="100" value="3500">
       </div>
-      <button id="refresh-btn" class="refresh-btn" title="Refresh">↻ Refresh</button>
+      <button id="refresh-btn-d" class="refresh-btn">↻</button>
+    </div>
+
+    <!-- Mobile filter toggle -->
+    <button class="filter-toggle" id="filter-toggle">⚙︎</button>
+  </header>
+
+  <!-- Mobile filter drawer -->
+  <div class="mobile-filter-drawer" id="mobile-drawer">
+    <div class="mf-row">
+      <div class="filter-group">
+        <button class="filter-btn active" data-br-m="all">All</button>
+        <button class="filter-btn" data-br-m="1">1BR</button>
+        <button class="filter-btn" data-br-m="2">2BR</button>
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-status-m="all">All status</button>
+        <button class="filter-btn" data-status-m="New">New</button>
+        <button class="filter-btn" data-status-m="Drafted">Drafted</button>
+        <button class="filter-btn" data-status-m="Sent">Sent</button>
+      </div>
+    </div>
+    <div class="mf-row">
+      <span class="price-label">Max <b id="price-val-m">$3,500</b></span>
+      <input type="range" id="price-slider-m" min="1500" max="3500" step="100" value="3500" style="flex:1;accent-color:#7fa8e8">
+      <button id="refresh-btn-m" class="refresh-btn">↻ Refresh</button>
     </div>
   </div>
 
-  <!-- ── Main content ── -->
-  <main>
+  <!-- Main content -->
+  <div class="app-content show-list" id="app-content">
     <aside id="sidebar">
       <div id="listings"></div>
       <div id="empty" class="empty hidden">No listings match your filters.</div>
     </aside>
     <div id="map"></div>
-  </main>
+  </div>
 
-  <!-- ── Mobile tab bar ── -->
+  <!-- Mobile tab bar -->
   <nav class="tab-bar">
     <button class="tab-btn active" data-tab="list">
-      <span class="tab-icon">≡</span>
-      <span class="tab-label">List</span>
+      <span class="tab-icon">≡</span>List
     </button>
     <button class="tab-btn" data-tab="map">
-      <span class="tab-icon">🗺</span>
-      <span class="tab-label">Map</span>
+      <span class="tab-icon">🗺</span>Map
     </button>
   </nav>
 
