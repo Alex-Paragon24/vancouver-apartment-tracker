@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 
 from scraper import get_listings, get_listing_details, is_target_neighborhood
+import kijiji_scraper
 from sheets import append_to_sheet, get_seen_ids_from_sheet, update_row_status, store_draft_id, get_drafted_rows
 from telegram_bot import send_notification, send_error_notification
 from gmail_draft import create_draft, is_draft_sent
@@ -69,7 +70,10 @@ def main():
     logger.info(f"Loaded {len(seen)} previously seen listing IDs (local + sheet)")
 
     listings = get_listings()
-    logger.info(f"Fetched {len(listings)} raw listings from Craigslist")
+    logger.info(f"Fetched {len(listings)} listings from Craigslist")
+    kj = kijiji_scraper.get_listings()
+    listings += kj
+    logger.info(f"Fetched {len(kj)} listings from Kijiji — total {len(listings)}")
 
     new_count = 0
     skipped_seen = 0
@@ -83,14 +87,18 @@ def main():
             skipped_seen += 1
             continue
 
-        details = get_listing_details(listing["link"])
+        if listing.get("source") == "kijiji":
+            details = kijiji_scraper.get_listing_details(listing["link"])
+        else:
+            details = get_listing_details(listing["link"])
         # Merge: detail values override search-page values only when non-empty
         full = {**listing, **{k: v for k, v in details.items() if v}}
 
         neighborhood = full.get("neighborhood", "")
         title = full.get("title", "")
 
-        if not is_target_neighborhood(neighborhood, title):
+        # Kijiji listings already passed geo filter — skip text-based neighbourhood check
+        if full.get("source") != "kijiji" and not is_target_neighborhood(neighborhood, title):
             logger.debug(f"Skipping listing outside target neighborhoods: {lid} ({neighborhood})")
             seen.add(lid)
             skipped_hood += 1

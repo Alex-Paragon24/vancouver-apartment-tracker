@@ -152,7 +152,7 @@ def get_seen_ids_from_sheet():
         links = sheet.sheet1.col_values(9)[1:]  # col 9 = Link (after adding Posted col), skip header
         ids = set()
         for link in links:
-            m = re.search(r'/(\d+)\.html', link)
+            m = re.search(r'/(\d+)(?:\.html)?$', link)
             if m:
                 ids.add(m.group(1))
         logger.info(f"Loaded {len(ids)} seen IDs from Google Sheet")
