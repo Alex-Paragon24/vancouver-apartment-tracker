@@ -116,8 +116,8 @@ def get_listings():
             "neighborhood": "",  # filled in get_listing_details
             "link": item.get("PostingURL", ""),
             "bedrooms": bedrooms,
-            # lat,lon string used directly by Maps API
             "address": f"{lat},{lon}" if lat and lon else "",
+            "posted_ts": item.get("PostedDate"),
         })
 
     return listings

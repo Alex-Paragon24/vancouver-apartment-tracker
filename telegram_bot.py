@@ -1,9 +1,23 @@
 import asyncio
 import logging
+from datetime import datetime, timezone
 from telegram import Bot
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 logger = logging.getLogger(__name__)
+
+
+def _format_posted_age(posted_ts):
+    if not posted_ts:
+        return None
+    delta = datetime.now(timezone.utc).timestamp() - posted_ts
+    hours = int(delta // 3600)
+    if hours < 1:
+        return "только что"
+    if hours < 24:
+        return f"{hours} ч. назад"
+    days = hours // 24
+    return f"{days} дн. назад"
 
 
 def _format_message(listing):
@@ -16,6 +30,8 @@ def _format_message(listing):
     amenities = listing.get("amenities", "")
     link = listing.get("link", "")
 
+    posted_age = _format_posted_age(listing.get("posted_ts"))
+
     lines = [
         f"🏠 <b>New {bedrooms}BR listing — {neighborhood}</b>",
         "",
@@ -23,6 +39,8 @@ def _format_message(listing):
         f"📍 <b>Address:</b> {address}",
         f"🚶 <b>Walk to Bacchus:</b> {walking_time}",
     ]
+    if posted_age:
+        lines.append(f"🕐 <b>Posted:</b> {posted_age}")
     if amenities:
         lines.append(f"✨ <b>Amenities:</b> {amenities}")
     lines += ["", f'<a href="{link}">View listing →</a>']
