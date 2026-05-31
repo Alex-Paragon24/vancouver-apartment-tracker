@@ -165,21 +165,23 @@ def get_listing_details(url):
     hood_el = soup.select_one("span.postingtitletext small")
     neighborhood = hood_el.get_text(strip=True).strip("() ") if hood_el else ""
 
-    # Prefer street address over coordinates
+    desc_el = soup.select_one("#postingbody")
+    description = desc_el.get_text(" ", strip=True) if desc_el else ""
+
+    # Priority: .mapaddress element → text extraction → map coordinates
     address = ""
     mapaddr_el = soup.select_one(".mapaddress")
     if mapaddr_el:
         address = mapaddr_el.get_text(strip=True)
-    else:
+    if not address:
+        address = _extract_address_from_text(f"{title} {description}")
+    if not address:
         map_el = soup.select_one("#map")
         if map_el:
             lat = map_el.get("data-latitude", "")
             lon = map_el.get("data-longitude", "")
             if lat and lon:
                 address = f"{lat},{lon}"
-
-    desc_el = soup.select_one("#postingbody")
-    description = desc_el.get_text(" ", strip=True) if desc_el else ""
 
     bedrooms = MIN_BEDROOMS
     available_from = ""
@@ -217,6 +219,22 @@ def get_listing_details(url):
 def is_target_neighborhood(neighborhood="", title="", description=""):
     combined = f"{neighborhood} {title} {description}".lower()
     return any(hood in combined for hood in TARGET_NEIGHBORHOODS)
+
+
+_STREET_RE = re.compile(
+    r'\b(\d{2,5})\s+'
+    r'(?:(?:W(?:est)?|E(?:ast)?|N(?:orth)?|S(?:outh)?)\.?\s+)?'
+    r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\s+'
+    r'(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|'
+    r'Way|Pl(?:ace)?|Ct|Court|Mews|Lane|Ln|Hwy)',
+    re.IGNORECASE,
+)
+
+
+def _extract_address_from_text(text):
+    """Pull a street address out of free-form text when structured fields are absent."""
+    m = _STREET_RE.search(text)
+    return m.group(0).strip() if m else ""
 
 
 def _parse_price(text):

@@ -22,7 +22,6 @@ SHEET_HEADERS = [
     "Address",
     "Neighborhood",
     "Walking Time to Bacchus",
-    "Posted",
     "Bedrooms",
     "Available From",
     "Link",
@@ -78,11 +77,13 @@ def setup_sheet_formatting(worksheet):
         textFormat=TextFormat(bold=True, foregroundColor=Color(1, 1, 1), fontSize=10),
     ))
 
-    # Column widths
+    # Column widths (A=Date, B=Price, C=Address, D=Neighborhood,
+    #                 E=Walking Time, F=Bedrooms, G=Available From,
+    #                 H=Link, I=Status, J=Draft ID)
     for col, width in [
         ("A", 140), ("B", 95),  ("C", 230), ("D", 125),
-        ("E", 145), ("F", 110), ("G", 70),  ("H", 260),
-        ("H", 120), ("I", 60),  ("J", 90),  ("K", 50),
+        ("E", 145), ("F", 70),  ("G", 120), ("H", 60),
+        ("I", 90),  ("J", 50),
     ]:
         set_column_width(worksheet, col, width)
 
@@ -125,7 +126,7 @@ def setup_sheet_formatting(worksheet):
         ("Sent",    Color(1.000, 0.800, 0.400)),
     ]:
         rules.append(ConditionalFormatRule(
-            ranges=[GridRange.from_a1_range("J2:J1000", worksheet)],
+            ranges=[GridRange.from_a1_range("I2:I1000", worksheet)],
             booleanRule=BooleanRule(
                 condition=BooleanCondition("TEXT_EQ", [text]),
                 format=CellFormat(backgroundColor=color),
@@ -149,7 +150,7 @@ def get_seen_ids_from_sheet():
     try:
         gc = _get_client()
         sheet = gc.open_by_key(GOOGLE_SHEET_ID)
-        links = sheet.sheet1.col_values(9)[1:]  # col 9 = Link (after adding Posted col), skip header
+        links = sheet.sheet1.col_values(8)[1:]  # col 8 = Link, skip header
         ids = set()
         for link in links:
             m = re.search(r'/(\d+)(?:\.html)?$', link)
@@ -171,11 +172,10 @@ def append_to_sheet(listing):
 
     row = [
         listing.get("date_found", ""),
-        listing.get("price") or "",   # numeric — currency format applied to column
+        listing.get("price") or "",
         listing.get("address", ""),
         listing.get("neighborhood", ""),
         listing.get("walking_time", "N/A"),
-        _age_str(listing.get("posted_ts")),
         listing.get("bedrooms", 2),
         listing.get("available_from", ""),
         listing.get("link", ""),
@@ -192,13 +192,13 @@ def append_to_sheet(listing):
 def update_row_status(row_idx, status):
     gc = _get_client()
     sheet = gc.open_by_key(GOOGLE_SHEET_ID)
-    sheet.sheet1.update_cell(row_idx, 10, status)  # col J = Status
+    sheet.sheet1.update_cell(row_idx, 9, status)  # col I = Status
     logger.info(f"Row {row_idx} status → {status}")
 
 
 def store_draft_id(row_idx, draft_id):
     gc = _get_client()
-    gc.open_by_key(GOOGLE_SHEET_ID).sheet1.update_cell(row_idx, 11, draft_id)  # col K
+    gc.open_by_key(GOOGLE_SHEET_ID).sheet1.update_cell(row_idx, 10, draft_id)  # col J
     logger.info(f"Stored draft ID for row {row_idx}")
 
 
@@ -209,8 +209,8 @@ def get_drafted_rows():
         all_rows = gc.open_by_key(GOOGLE_SHEET_ID).sheet1.get_all_values()
         result = []
         for i, row in enumerate(all_rows[1:], start=2):  # skip header, 1-indexed
-            status   = row[9]  if len(row) > 9  else ""
-            draft_id = row[10] if len(row) > 10 else ""
+            status   = row[8]  if len(row) > 8  else ""
+            draft_id = row[9]  if len(row) > 9  else ""
             if status == "Drafted" and draft_id:
                 result.append((i, draft_id))
         return result
