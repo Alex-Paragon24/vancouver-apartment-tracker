@@ -119,12 +119,17 @@ def setup_sheet_formatting(worksheet):
         ),
     ))
 
-    # Status: blue=New, green=Drafted, orange=Sent
-    for text, color in [
-        ("New",     Color(0.788, 0.878, 0.980)),
-        ("Drafted", Color(0.714, 0.843, 0.659)),
-        ("Sent",    Color(1.000, 0.800, 0.400)),
-    ]:
+    # Status colours
+    STATUS_COLORS = [
+        ("New",      Color(0.788, 0.878, 0.980)),  # blue
+        ("Drafted",  Color(0.714, 0.843, 0.659)),  # green
+        ("Sent",     Color(1.000, 0.800, 0.400)),  # orange
+        ("Replied",  Color(0.878, 0.714, 0.980)),  # purple
+        ("Viewing",  Color(0.714, 0.933, 0.933)),  # teal
+        ("Declined", Color(0.957, 0.800, 0.800)),  # red
+        ("Closed",   Color(0.878, 0.878, 0.878)),  # grey
+    ]
+    for text, color in STATUS_COLORS:
         rules.append(ConditionalFormatRule(
             ranges=[GridRange.from_a1_range("I2:I1000", worksheet)],
             booleanRule=BooleanRule(
@@ -134,6 +139,28 @@ def setup_sheet_formatting(worksheet):
         ))
 
     rules.save()
+
+    # Dropdown validation for Status column (col I = index 8, 0-based)
+    statuses = [s for s, _ in STATUS_COLORS]
+    worksheet.spreadsheet.batch_update({"requests": [{
+        "setDataValidation": {
+            "range": {
+                "sheetId": worksheet.id,
+                "startRowIndex": 1,
+                "startColumnIndex": 8,
+                "endColumnIndex": 9,
+            },
+            "rule": {
+                "condition": {
+                    "type": "ONE_OF_LIST",
+                    "values": [{"userEnteredValue": s} for s in statuses],
+                },
+                "showCustomUi": True,
+                "strict": False,
+            },
+        }
+    }]})
+
     logger.info("Sheet formatting applied")
 
 
