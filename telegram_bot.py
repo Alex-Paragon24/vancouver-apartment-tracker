@@ -41,6 +41,9 @@ def _format_message(listing):
     ]
     if posted_age:
         lines.append(f"🕐 <b>Posted:</b> {posted_age}")
+    available_from = listing.get("available_from", "")
+    if available_from:
+        lines.append(f"📅 <b>Available:</b> {available_from}")
     if amenities:
         lines.append(f"✨ <b>Amenities:</b> {amenities}")
     lines += ["", f'<a href="{link}">View listing →</a>']
