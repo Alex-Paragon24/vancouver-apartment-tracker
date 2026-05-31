@@ -11,12 +11,11 @@ logger = logging.getLogger(__name__)
 TEMPLATE = """\
 Hi,
 
-I came across your listing on Craigslist and I'm very interested in the apartment.
+I came across your listing and I'm very interested in the apartment.
 
 About us: we are a young professional couple, non-smokers, no pets. I work in \
-hospitality and my partner works in marketing. We are looking to move in as soon \
-as possible — our current unit was damaged by flooding through no fault of our own \
-— and are planning a long-term stay.
+hospitality and my partner works in marketing.{movein_line} We are looking for a \
+long-term stay.
 
 We would love to schedule a viewing at your convenience. Please let us know what \
 works for you.
@@ -24,6 +23,12 @@ works for you.
 Thank you,
 Alex & Karen
 """
+
+
+def _movein_phrase(available_from):
+    if not available_from:
+        return ""
+    return f" The {available_from} move-in date works perfectly for us."
 
 
 def create_draft(listing):
@@ -40,7 +45,7 @@ def create_draft(listing):
         bedrooms = listing.get("bedrooms", "")
         br_label = f"{bedrooms}BR " if bedrooms else ""
         subject = f"Interested in your {price_str} {br_label}listing — {neighborhood}"
-        body = TEMPLATE
+        body = TEMPLATE.replace("{movein_line}", _movein_phrase(listing.get("available_from", "")))
         to = listing.get("reply_email", "")
 
         msg = MIMEText(body)
