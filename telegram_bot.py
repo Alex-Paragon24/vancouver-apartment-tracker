@@ -13,11 +13,11 @@ def _format_posted_age(posted_ts):
     delta = datetime.now(timezone.utc).timestamp() - posted_ts
     hours = int(delta // 3600)
     if hours < 1:
-        return "только что"
+        return "just now"
     if hours < 24:
-        return f"{hours} ч. назад"
+        return f"{hours}h ago"
     days = hours // 24
-    return f"{days} дн. назад"
+    return f"{days}d ago"
 
 
 def _format_message(listing):
