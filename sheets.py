@@ -30,17 +30,6 @@ SHEET_HEADERS = [
 ]
 
 
-def _age_str(posted_ts):
-    if not posted_ts:
-        return ""
-    delta = datetime.now(timezone.utc).timestamp() - posted_ts
-    hours = int(delta // 3600)
-    if hours < 1:
-        return "< 1h ago"
-    if hours < 24:
-        return f"{hours}h ago"
-    return f"{hours // 24}d ago"
-
 
 def get_creds():
     creds = None
