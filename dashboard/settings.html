@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Settings — Vancouver Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { display: block; overflow-y: auto; background: var(--bg); }
+
+    .page { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--navy); font-size: 0.85rem; font-weight: 600;
+      text-decoration: none; margin-bottom: 20px;
+    }
+    .back-link:hover { opacity: .7; }
+
+    h2 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
+
+    .card {
+      background: var(--card); border-radius: 14px;
+      padding: 20px; margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border: 2px solid transparent;
+    }
+
+    .card-title {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; color: #999; margin-bottom: 14px;
+    }
+
+    /* ── Bot status toggle ── */
+    .status-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .status-label { font-size: 1rem; font-weight: 600; color: var(--navy); }
+    .status-sub   { font-size: 0.78rem; color: #888; margin-top: 2px; }
+
+    .toggle-wrap { display: flex; gap: 8px; }
+
+    .btn-enable  { background: #e8f5e9; color: var(--green); }
+    .btn-disable { background: #fff3e0; color: var(--orange); }
+    .btn-run     { background: var(--navy); color: #fff; }
+
+    .status-dot {
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 50%; margin-right: 6px; vertical-align: middle;
+    }
+    .dot-active   { background: #4caf50; box-shadow: 0 0 6px #4caf5088; }
+    .dot-disabled { background: #bbb; }
+
+    /* ── Runs ── */
+    .run-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid #f0f2f5;
+      font-size: 0.82rem;
+    }
+    .run-item:last-child { border-bottom: none; }
+    .run-status { font-size: 1rem; flex-shrink: 0; }
+    .run-time   { color: #888; font-size: 0.75rem; margin-left: auto; }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label { font-size: 0.78rem; font-weight: 600; color: #555; }
+
+    input[type=text], input[type=number], input[type=password] {
+      padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 8px;
+      font-size: 0.88rem; font-family: inherit; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: var(--navy); }
+
+    .hint { font-size: 0.72rem; color: #aaa; }
+
+    .save-btn {
+      width: 100%; padding: 11px; background: var(--navy); color: #fff;
+      border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; margin-top: 4px; transition: opacity .15s;
+    }
+    .save-btn:hover { opacity: .85; }
+
+    /* ── Token card ── */
+    .token-row { display: flex; gap: 8px; }
+    .token-row input { flex: 1; }
+    .token-save {
+      padding: 9px 16px; background: var(--navy); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .token-status { font-size: 0.78rem; margin-top: 6px; }
+    .token-ok  { color: var(--green); }
+    .token-err { color: var(--red); }
+
+    .alert {
+      padding: 10px 14px; border-radius: 8px; font-size: 0.82rem;
+      margin-top: 10px; display: none;
+    }
+    .alert-ok  { background: #e8f5e9; color: #2e7d32; }
+    .alert-err { background: #ffebee; color: #c62828; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span class="logo">🏠</span>
+      <h1>Vancouver Tracker</h1>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="index.html" class="back-link">← Back to dashboard</a>
+
+    <!-- Token -->
+    <div class="card">
+      <div class="card-title">GitHub Access Token</div>
+      <div class="token-row">
+        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <button class="token-save" onclick="saveToken()">Save</button>
+      </div>
+      <div class="token-status" id="token-status"></div>
+      <div class="hint" style="margin-top:8px">
+        Create at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
+        — select scope <b>workflow</b>. Stored locally in your browser.
+      </div>
+    </div>
+
+    <!-- Bot status -->
+    <div class="card">
+      <div class="card-title">Bot Status</div>
+      <div class="status-row">
+        <div>
+          <div class="status-label" id="status-text">
+            <span class="status-dot dot-disabled" id="status-dot"></span>
+            Loading…
+          </div>
+          <div class="status-sub" id="status-sub"></div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="btn btn-enable"  onclick="enableBot()">Enable</button>
+          <button class="btn btn-disable" onclick="disableBot()">Disable</button>
+          <button class="btn btn-run"     onclick="runNow()">▶ Run now</button>
+        </div>
+      </div>
+      <div class="alert" id="action-alert"></div>
+    </div>
+
+    <!-- Recent runs -->
+    <div class="card">
+      <div class="card-title">Recent Runs</div>
+      <div id="runs-list">Loading…</div>
+    </div>
+
+    <!-- Config -->
+    <div class="card">
+      <div class="card-title">Search Configuration</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>City (Craigslist subdomain)</label>
+          <input type="text" id="cfg-city" placeholder="vancouver">
+        </div>
+        <div class="field full">
+          <label>Target Neighborhoods (comma-separated)</label>
+          <input type="text" id="cfg-hoods" placeholder="downtown,yaletown,coal harbour,west end">
+        </div>
+        <div class="field">
+          <label>Max Price — 1BR ($)</label>
+          <input type="number" id="cfg-p1" placeholder="3200" step="50">
+        </div>
+        <div class="field">
+          <label>Max Price — 2BR ($)</label>
+          <input type="number" id="cfg-p2" placeholder="3500" step="50">
+        </div>
+        <div class="field">
+          <label>Min Bedrooms</label>
+          <input type="number" id="cfg-min-br" placeholder="1" min="0" max="5">
+        </div>
+        <div class="field">
+          <label>Max Bedrooms</label>
+          <input type="number" id="cfg-max-br" placeholder="2" min="1" max="5">
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveConfig()" style="margin-top:16px">Save Configuration</button>
+      <div class="alert" id="config-alert"></div>
+    </div>
+  </div>
+
+  <script>
+    const OWNER    = 'Alex-Paragon24';
+    const REPO     = 'vancouver-apartment-tracker';
+    const WORKFLOW = 'scraper.yml';
+    const API      = 'https://api.github.com';
+
+    function getToken() { return localStorage.getItem('gh_token') || ''; }
+
+    function authHeaders() {
+      const t = getToken();
+      return t ? { 'Authorization': `token ${t}`, 'Accept': 'application/vnd.github.v3+json' }
+               : { 'Accept': 'application/vnd.github.v3+json' };
+    }
+
+    function showAlert(id, msg, ok = true) {
+      const el = document.getElementById(id);
+      el.className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // ── Token ──────────────────────────────────────────────────────
+    function saveToken() {
+      const val = document.getElementById('gh-token').value.trim();
+      if (!val) return;
+      localStorage.setItem('gh_token', val);
+      document.getElementById('gh-token').value = '';
+      document.getElementById('token-status').className = 'token-status token-ok';
+      document.getElementById('token-status').textContent = '✓ Token saved';
+      loadAll();
+    }
+
+    // ── Status ─────────────────────────────────────────────────────
+    async function loadStatus() {
+      try {
+        const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`, { headers: authHeaders() });
+        const d = await r.json();
+        const active = d.state === 'active';
+        document.getElementById('status-dot').className = 'status-dot ' + (active ? 'dot-active' : 'dot-disabled');
+        document.getElementById('status-text').innerHTML =
+          `<span class="status-dot ${active ? 'dot-active' : 'dot-disabled'}"></span>` +
+          (active ? 'Bot is <b>running</b>' : 'Bot is <b>paused</b>');
+        document.getElementById('status-sub').textContent =
+          active ? 'Checks Craigslist + Kijiji every hour' : 'Schedule disabled — run manually or re-enable';
+      } catch (e) {
+        document.getElementById('status-text').textContent = 'Could not load status';
+      }
+    }
+
+    async function enableBot() {
+      const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/enable`,
+        { method: 'PUT', headers: authHeaders() });
+      showAlert('action-alert', r.ok ? '✓ Bot enabled — will run every hour' : '✗ Failed (check token)', r.ok);
+      if (r.ok) loadStatus();
+    }
+
+    async function disableBot() {
+      const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/disable`,
+        { method: 'PUT', headers: authHeaders() });
+      showAlert('action-alert', r.ok ? '✓ Bot paused' : '✗ Failed (check token)', r.ok);
+      if (r.ok) loadStatus();
+    }
+
+    async function runNow() {
+      const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
+        { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: 'main' }) });
+      showAlert('action-alert', r.ok ? '✓ Run triggered — check Telegram in ~1 min' : '✗ Failed (check token)', r.ok);
+    }
+
+    // ── Runs ───────────────────────────────────────────────────────
+    async function loadRuns() {
+      try {
+        const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=5`, { headers: authHeaders() });
+        const d = await r.json();
+        const el = document.getElementById('runs-list');
+        if (!d.workflow_runs?.length) { el.textContent = 'No runs yet'; return; }
+        el.innerHTML = d.workflow_runs.map(run => {
+          const icon = run.conclusion === 'success' ? '✅' : run.status === 'in_progress' ? '⏳' : '❌';
+          const dt   = new Date(run.created_at);
+          const ago  = timeAgo(dt);
+          return `<div class="run-item">
+            <span class="run-status">${icon}</span>
+            <span>${run.conclusion || run.status}</span>
+            <span class="run-time">${ago}</span>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        document.getElementById('runs-list').textContent = 'Could not load runs';
+      }
+    }
+
+    function timeAgo(date) {
+      const s = Math.floor((Date.now() - date) / 1000);
+      if (s < 60)   return `${s}s ago`;
+      if (s < 3600) return `${Math.floor(s/60)}m ago`;
+      if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+      return `${Math.floor(s/86400)}d ago`;
+    }
+
+    // ── Config ─────────────────────────────────────────────────────
+    async function loadConfig() {
+      try {
+        const r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/variables`, { headers: authHeaders() });
+        const d = await r.json();
+        const vars = {};
+        (d.variables || []).forEach(v => vars[v.name] = v.value);
+        document.getElementById('cfg-city').value    = vars.TARGET_CITY || 'vancouver';
+        document.getElementById('cfg-hoods').value   = vars.TARGET_NEIGHBORHOODS || 'downtown,yaletown,coal harbour,west end';
+        document.getElementById('cfg-p1').value      = vars.MAX_PRICE_1BR || '3200';
+        document.getElementById('cfg-p2').value      = vars.MAX_PRICE_2BR || '3500';
+        document.getElementById('cfg-min-br').value  = vars.MIN_BEDROOMS || '1';
+        document.getElementById('cfg-max-br').value  = vars.MAX_BEDROOMS || '2';
+      } catch (e) {}
+    }
+
+    async function setVar(name, value) {
+      // Try PATCH first, fall back to POST if not exists
+      let r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/variables/${name}`,
+        { method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, value: String(value) }) });
+      if (r.status === 404) {
+        r = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/variables`,
+          { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, value: String(value) }) });
+      }
+      return r.ok;
+    }
+
+    async function saveConfig() {
+      if (!getToken()) { showAlert('config-alert', '✗ GitHub token required — set it above', false); return; }
+      const vars = {
+        TARGET_CITY:           document.getElementById('cfg-city').value.trim(),
+        TARGET_NEIGHBORHOODS:  document.getElementById('cfg-hoods').value.trim(),
+        MAX_PRICE_1BR:         document.getElementById('cfg-p1').value,
+        MAX_PRICE_2BR:         document.getElementById('cfg-p2').value,
+        MIN_BEDROOMS:          document.getElementById('cfg-min-br').value,
+        MAX_BEDROOMS:          document.getElementById('cfg-max-br').value,
+      };
+      const results = await Promise.all(Object.entries(vars).map(([k, v]) => setVar(k, v)));
+      const ok = results.every(Boolean);
+      showAlert('config-alert', ok ? '✓ Config saved — takes effect on next run' : '✗ Some variables failed to save', ok);
+    }
+
+    // ── Init ───────────────────────────────────────────────────────
+    function loadAll() { loadStatus(); loadRuns(); loadConfig(); }
+
+    if (getToken()) {
+      document.getElementById('token-status').className = 'token-status token-ok';
+      document.getElementById('token-status').textContent = '✓ Token saved';
+    }
+
+    loadAll();
+  </script>
+</body>
+</html>

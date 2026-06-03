@@ -37,10 +37,16 @@ jobs:
 
       - name: Run scraper
         env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_MAPS_API_KEY:    ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:       ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_SHEET_ID:        ${{ secrets.GOOGLE_SHEET_ID }}
+          TARGET_CITY:            ${{ vars.TARGET_CITY }}
+          TARGET_NEIGHBORHOODS:   ${{ vars.TARGET_NEIGHBORHOODS }}
+          MIN_BEDROOMS:           ${{ vars.MIN_BEDROOMS }}
+          MAX_BEDROOMS:           ${{ vars.MAX_BEDROOMS }}
+          MAX_PRICE_1BR:          ${{ vars.MAX_PRICE_1BR }}
+          MAX_PRICE_2BR:          ${{ vars.MAX_PRICE_2BR }}
         run: python main.py
 
       - name: Save seen listings
