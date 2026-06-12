@@ -115,6 +115,18 @@ h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
 .empty { padding: 48px 20px; text-align: center; color: #999; font-size: 0.9rem; }
 .hidden { display: none !important; }
 
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #aaa;
+  font-size: 0.85rem;
+  gap: 4px;
+}
+.loading-state canvas { opacity: .85; }
+
 /* ── Card ── */
 .card {
   background: var(--card);

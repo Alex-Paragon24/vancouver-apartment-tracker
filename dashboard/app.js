@@ -199,6 +199,7 @@ function addMarker(l, coords) {
 // ── Load ───────────────────────────────────────────────────────────
 async function load() {
   document.getElementById('count').textContent = 'Loading…';
+  showLoading(true);
   try {
     const resp = await fetch(SHEET_URL + '&t=' + Date.now());
     const text = await resp.text();
@@ -206,6 +207,7 @@ async function load() {
     Object.values(markers).forEach(m => map.removeLayer(m));
     markers = {};
     allListings = rows.filter(r => r.length > 8 && r[8]).map(rowToListing);
+    showLoading(false);
     render();
     for (const l of allListings) {
       if (markers[l._idx]) continue;
@@ -213,6 +215,7 @@ async function load() {
       if (coords) addMarker(l, coords);
     }
   } catch (err) {
+    showLoading(false);
     document.getElementById('count').textContent = 'Error — check sheet is public';
     console.error(err);
   }
@@ -277,6 +280,21 @@ document.getElementById('refresh-btn-m').addEventListener('click', load);
 document.getElementById('filter-toggle').addEventListener('click', () => {
   document.getElementById('mobile-drawer').classList.toggle('open');
 });
+
+// ── Lottie loading animation ───────────────────────────────────────
+let lottiePlayer = null;
+try {
+  lottiePlayer = new DotLottie({
+    canvas: document.getElementById('lottie-canvas'),
+    src: 'search.lottie',
+    loop: true,
+    autoplay: true,
+  });
+} catch (_) {}
+
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('hidden', !show);
+}
 
 // ── Init ───────────────────────────────────────────────────────────
 load();

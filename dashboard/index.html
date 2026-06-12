@@ -74,6 +74,10 @@
   <!-- Main -->
   <div class="app-content" id="app-content">
     <aside id="sidebar">
+      <div id="loading" class="loading-state">
+        <canvas id="lottie-canvas" width="160" height="160"></canvas>
+        <p>Searching listings…</p>
+      </div>
       <div id="listings"></div>
       <div id="empty" class="empty hidden">No listings match your filters.</div>
     </aside>
@@ -91,6 +95,7 @@
   </nav>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-web/dist/dotlottie-web.iife.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
