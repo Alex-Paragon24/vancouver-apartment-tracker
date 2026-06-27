@@ -88,24 +88,23 @@ h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
 
 /* Settings button */
 .settings-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
   background: rgba(255,255,255,.15);
   border: 1.5px solid rgba(255,255,255,.3);
-  border-radius: 20px;
   color: #fff;
-  font-size: 1.3rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   transition: all .15s;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 .settings-btn:hover {
   background: rgba(255,255,255,.25);
   border-color: rgba(255,255,255,.5);
+  color: #fff;
 }
 
 /* Mobile-only elements — hidden on desktop */
@@ -326,8 +325,7 @@ h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
 
   /* Mobile header — ensure settings button is visible */
   .settings-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1.1rem;
+    padding: 5px 11px;
+    font-size: 0.73rem;
   }
 }
