@@ -86,6 +86,28 @@ h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
 }
 .refresh-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
 
+/* Settings button */
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 1.3rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.settings-btn:hover {
+  background: rgba(255,255,255,.25);
+  border-color: rgba(255,255,255,.5);
+}
+
 /* Mobile-only elements — hidden on desktop */
 .filter-toggle       { display: none; }
 .mobile-filter-drawer { display: none; }
@@ -301,4 +323,11 @@ h1 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
   }
   .tab-btn.active { color: var(--navy); }
   .tab-icon { font-size: 1.3rem; line-height: 1; }
+
+  /* Mobile header — ensure settings button is visible */
+  .settings-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
 }
